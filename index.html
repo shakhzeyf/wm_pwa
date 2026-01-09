@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WM Stamp PWA</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f0f12" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <div class="left">
+      <div class="group">
+        <div class="h">Файл</div>
+        <div class="row">
+          <button class="btn primary" id="btnOpen">Открыть PDF/Фото</button>
+          <input id="fileInput" type="file" accept="application/pdf,image/*" style="display:none;">
+        </div>
+        <div class="small" style="margin-top:8px;">
+          Если PDF не открывается — проверь, что открыто в Chrome, не в “встроенном браузере”.
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="h">Область (фикс. размер)</div>
+        <div class="row">
+          <div>
+            <label>Ширина (мм)</label>
+            <input type="number" id="areaW" min="1" step="1" value="70">
+          </div>
+          <div>
+            <label>Высота (мм)</label>
+            <input type="number" id="areaH" min="1" step="1" value="40">
+          </div>
+        </div>
+        <div class="row" style="margin-top:10px;">
+          <div>
+            <label>DPI</label>
+            <input type="number" id="dpi" min="72" step="1" value="300">
+          </div>
+          <div>
+            <label>Стр.</label>
+            <div class="row" style="gap:6px;">
+              <button class="btn" id="prevPage">◀</button>
+              <input type="number" id="pageNo" min="1" step="1" value="1" style="max-width:110px;">
+              <button class="btn" id="nextPage">▶</button>
+            </div>
+            <div class="small" id="pageInfo"></div>
+          </div>
+        </div>
+        <div class="row" style="margin-top:10px;">
+          <button class="btn" id="btnSelect">Выбрать место</button>
+          <button class="btn primary" id="btnApply" disabled>OK (нанести)</button>
+        </div>
+        <div class="small" style="margin-top:6px;">
+          Выбор: тапни/кликни по листу. Область фиксированного размера (мм → px через DPI).
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="h">Водяные знаки</div>
+
+        <div class="row">
+          <div>
+            <label>WM1 масштаб (%)</label>
+            <input type="number" id="wm1Scale" min="1" step="1" value="100">
+          </div>
+          <div>
+            <label>WM2 масштаб (%)</label>
+            <input type="number" id="wm2Scale" min="1" step="1" value="100">
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <label class="chk"><input type="checkbox" id="enableWM2" checked> Накладывать WM2 поверх WM1</label>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <div>
+            <label>Blend</label>
+            <select id="blend">
+              <option value="linear_burn">Linear Burn</option>
+              <option value="normal">Normal</option>
+            </select>
+          </div>
+          <div>
+            <label>Прозрачность (0..100)</label>
+            <input type="number" id="opacity" min="1" max="100" step="1" value="100">
+          </div>
+        </div>
+
+        <div class="small" style="margin-top:8px;">
+          Рандом поворота: WM1 ±30°, WM2 ±5° (фиксировано).
+        </div>
+
+        <div class="row" style="margin-top:10px; align-items:flex-start;">
+          <div style="flex:1;">
+            <div class="small" style="margin-bottom:6px;">WM1 (выбери до 3)</div>
+            <label class="chk"><input type="checkbox" class="wm1" value="WM1.1.png" checked> WM1.1</label>
+            <label class="chk"><input type="checkbox" class="wm1" value="WM1.2.png" checked> WM1.2</label>
+            <label class="chk"><input type="checkbox" class="wm1" value="WM1.3.png" checked> WM1.3</label>
+          </div>
+          <div style="flex:1;">
+            <div class="small" style="margin-bottom:6px;">WM2 (выбери до 3)</div>
+            <label class="chk"><input type="checkbox" class="wm2" value="WM2.1.png" checked> WM2.1</label>
+            <label class="chk"><input type="checkbox" class="wm2" value="WM2.2.png" checked> WM2.2</label>
+            <label class="chk"><input type="checkbox" class="wm2" value="WM2.3.png" checked> WM2.3</label>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <button class="btn" id="btnUndo" disabled>Отмена (Undo)</button>
+          <button class="btn" id="btnClear" disabled>Сбросить на этой странице</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="h">Экспорт</div>
+        <div class="row">
+          <button class="btn" id="btnPng" disabled>Экспорт PNG</button>
+          <button class="btn primary" id="btnPdf" disabled>Экспорт PDF (растр)</button>
+        </div>
+        <div class="small" style="margin-top:8px;">
+          PDF будет растровым (как картинка). Это надёжнее для blend режимов.
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="h">Статус</div>
+        <div class="small" id="depStatus">Загрузка библиотек…</div>
+        <div class="small" id="hint" style="margin-top:6px; color:#a8a8b7;"></div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="topbar">
+        <button class="btn menu" id="btnMenu" title="Меню">☰</button>
+        <button class="btn primary" id="btnOpenTop">Открыть</button>
+        <button class="btn" id="btnUndoTop" title="Отмена">↩</button>
+        <div class="kbd">Ctrl+Z</div>
+        <div class="status" id="status">Готово</div>
+      </div>
+
+      <div class="canvasWrap">
+        <div class="stage">
+          <canvas id="canvas" width="800" height="1000"></canvas>
+          <div id="overlay" style="display:none;"></div>
+          <div class="emptyHint" id="emptyHint">
+            <div class="card">
+              <div class="t">Открой документ</div>
+              <div class="d">PDF или фото. После открытия можно выбрать место и нанести водяные знаки.</div>
+              <button class="btn primary big" id="btnOpenBig">Открыть PDF/Фото</button>
+              <div class="d2">Совет: открой 1 раз с интернетом — потом можно оффлайн.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mobbar" id="mobBar">
+        <button class="btn primary" id="btnOpenMob">Открыть</button>
+        <button class="btn" id="btnSelectMob">Область</button>
+        <button class="btn primary" id="btnApplyMob">OK</button>
+        <button class="btn" id="btnUndoMob" title="Отмена">↩</button>
+        <button class="btn" id="btnPdfMob">PDF</button>
+        <button class="btn" id="btnPngMob">PNG</button>
+      </div>
+
+      <div class="footerbar">
+        <div class="small">Совет: открывай в Chrome (не в встроенном браузере). После первого открытия онлайн можно работать оффлайн.</div>
+      </div>
+    </div>
+  </div>
+  <div class="backdrop" id="backdrop" style="display:none;"></div>
+
+<script>
+  // Register SW
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+  }
+
+  const depStatus = document.getElementById('depStatus');
+  const hint = document.getElementById('hint');
+
+  async function loadScript(urls, label){
+    let lastErr = null;
+    for (const url of urls){
+      try{
+        depStatus.textContent = `Загружаю ${label}: ${url}`;
+        await new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = url;
+          s.async = true;
+          s.onload = () => resolve();
+          s.onerror = () => reject(new Error('script load failed'));
+          document.head.appendChild(s);
+        });
+        return url;
+      }catch(e){
+        lastErr = e;
+      }
+    }
+    throw lastErr || new Error(`Не удалось загрузить ${label}`);
+  }
+
+  (async () => {
+    try{
+      // PDF.js legacy (global pdfjsLib)
+      const pdfjsUrls = [
+        "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.min.js",
+        "https://unpkg.com/pdfjs-dist@3.11.174/legacy/build/pdf.min.js",
+      ];
+      const workerUrls = [
+        "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.worker.min.js",
+        "https://unpkg.com/pdfjs-dist@3.11.174/legacy/build/pdf.worker.min.js",
+      ];
+      const pdfLibUrls = [
+        "https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js",
+        "https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js",
+      ];
+
+      const pdfjsLoadedFrom = await loadScript(pdfjsUrls, "PDF.js");
+      const pdfLibLoadedFrom = await loadScript(pdfLibUrls, "pdf-lib");
+
+      // Expose worker fallback list to app.js
+      window.__wm_worker_urls__ = workerUrls;
+      window.__wm_pdfjs_from__ = pdfjsLoadedFrom;
+      window.__wm_pdflib_from__ = pdfLibLoadedFrom;
+
+      if (!window.pdfjsLib){
+        throw new Error("PDF.js загружен, но pdfjsLib не найден (не legacy сборка?)");
+      }
+      depStatus.textContent = "Библиотеки загружены. Можно открывать PDF.";
+      hint.textContent = "";
+      // Now load app.js
+      const s = document.createElement('script');
+      s.src = "app.js";
+      document.body.appendChild(s);
+    }catch(e){
+      depStatus.textContent = "PDF.js не загрузился. Открой один раз с интернетом или проверь хостинг.";
+      hint.textContent = "Часто причина — блокировка CDN (Private DNS/AdBlock) или открыто не в Chrome. Ошибка: " + (e && e.message ? e.message : e);
+      console.error(e);
+    }
+  })();
+</script>
+</body>
+</html>
