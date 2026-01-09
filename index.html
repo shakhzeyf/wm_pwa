@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WM Stamp (Offline PWA)</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#111111" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <div class="title">
+      <div class="logo">WM</div>
+      <div>
+        <div class="h1">WM Stamp</div>
+        <div class="h2">Offline PWA • PDF/Image • WM1+WM2 • Linear Burn • Undo</div>
+      </div>
+    </div>
+    <div class="right">
+      <button id="btnInstall" class="secondary" hidden>Установить</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <div class="row">
+        <input id="fileInput" type="file" accept=".pdf,image/*" />
+        <button id="btnPrev" class="secondary" disabled>◀</button>
+        <button id="btnNext" class="secondary" disabled>▶</button>
+        <div id="pageLabel" class="pill">—</div>
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label>Area W (мм)</label>
+          <input id="areaW" type="number" min="10" max="300" step="1" />
+        </div>
+        <div class="field">
+          <label>Area H (мм)</label>
+          <input id="areaH" type="number" min="10" max="300" step="1" />
+        </div>
+        <div class="field">
+          <label>DPI</label>
+          <input id="dpi" type="number" min="72" max="300" step="1" />
+        </div>
+        <div class="field">
+          <label>Opacity</label>
+          <input id="opacity" type="number" min="0.05" max="1" step="0.01" />
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="field wide">
+          <label>Mode</label>
+          <select id="mode">
+            <option value="burn">Linear Burn</option>
+            <option value="normal">Normal</option>
+          </select>
+        </div>
+
+        <div class="field chk">
+          <label><input id="useWm1" type="checkbox" /> Use WM1 (random)</label>
+        </div>
+        <div class="field">
+          <label>WM1 Fit</label>
+          <select id="wm1Fit">
+            <option value="contain">contain</option>
+            <option value="cover">cover</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>WM1 %</label>
+          <input id="wm1Scale" type="number" min="5" max="300" step="1" />
+        </div>
+
+        <div class="field chk">
+          <label><input id="useWm2" type="checkbox" /> Use WM2 on top (random)</label>
+        </div>
+        <div class="field">
+          <label>WM2 %</label>
+          <input id="wm2Scale" type="number" min="5" max="300" step="1" />
+        </div>
+
+        <div class="field hint">
+          <div class="small">Rotate: WM1 ±30°, WM2 ±5° (fixed)</div>
+          <div class="small" id="wmInfo"></div>
+        </div>
+      </div>
+
+      <div class="row actions">
+        <button id="btnApply" class="primary" disabled>OK (нанести)</button>
+        <button id="btnUndo" class="secondary" disabled>Undo (Ctrl+Z)</button>
+        <button id="btnExportPdf" class="secondary" disabled>Экспорт PDF</button>
+        <button id="btnExportPng" class="secondary" disabled>Экспорт PNG</button>
+      </div>
+
+      <div class="small note">
+        Важно: чтобы PWA работало оффлайн, нужно один раз открыть страницу по HTTPS и добавить на главный экран (PWA кеширует файлы).
+      </div>
+    </section>
+
+    <section class="viewer">
+      <div class="canvasWrap">
+        <canvas id="pageCanvas"></canvas>
+        <canvas id="overlayCanvas"></canvas>
+      </div>
+      <div id="status" class="status">Открой PDF или картинку</div>
+    </section>
+  </main>
+
+  <!-- External libs (cached by Service Worker after first load) -->
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+
+  <script src="app.js"></script>
+</body>
+</html>
